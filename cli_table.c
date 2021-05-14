@@ -2,21 +2,7 @@
 // Created by 喻时耕宇 on 2021/4/30.
 //
 #include "cli_table.h"
-static int cell_set_value(CellObject* object, const char* value, uint16_t len){
-    int res = 0;
-    char *new_ptr = realloc(object->value.str, len + 1);
-    if(new_ptr == NULL){
-        res = -1;
-        goto end;
-    }
-    object->value.str = new_ptr;
-    memcpy(object->value.str, value, len);
-    object->value.str[len] = '\0';
-    object->value.len = len + 1;
-    res = len;
-    end:
-    return res;
-}
+const char *version = "v0.1.0";
 
 static int cell_init(CellObject* object, const char* value){
     int res = 0;
@@ -47,7 +33,10 @@ static void cell_deinit(CellObject* object){
 static uint32_t static_table_row_get_width(StaticTableObject* object, uint32_t row){
     uint32_t width = 0;
     for(uint32_t i = 0; i < object->columnMax; i++)
-        width += (object->cellTable[row][i].value.len + 1);
+        if(object->cellTable[row][i] != NULL)
+            width += (object->cellTable[row][i]->value.len + 1);
+        else
+            width += 1;
     width += 1;
     return width;
 }
@@ -55,33 +44,106 @@ static uint32_t static_table_row_get_width(StaticTableObject* object, uint32_t r
 static uint32_t static_table_column_get_width(StaticTableObject* object, uint32_t column){
     uint32_t width = 0;
     for(uint32_t i = 0; i < object->rowMax; i++){
-        if(object->cellTable[i][column].value.len > width)
-            width = object->cellTable[i][column].value.len;
+        if(object->cellTable[i][column] != NULL)
+            if(object->cellTable[i][column]->value.len > width)
+                width = object->cellTable[i][column]->value.len;
     }
     return width;
 }
 
-int cli_static_table_cell_set_value(StaticTableObject* object, uint32_t row, uint32_t column, const char* value){
-    uint16_t len;
-    CellObject* cell;
-    if(object) {
-        if(row >= object->rowMax || column >= object->columnMax){
-            len = -2;
-            goto end;
-        }
-        len = strlen(value);
-        len = len > CELL_VALUE_LEN_MAX ? CELL_VALUE_LEN_MAX : len;
-        cell = &object->cellTable[column][row];
-        len = cell_set_value(cell, value, len);
-        if(len > 0){
-            uint32_t columnWidth = len;
-            object->columnWidth[column] = object->columnWidth[column] > columnWidth ?
-                                          object->columnWidth[column] : columnWidth;
-        }
-    } else
-        len = -1;
+CellObject* cell_create(const char * value){
+    CellObject* object = calloc(1, sizeof(CellObject));
+    if(object == NULL)
+        goto end;
+    if(cell_init(object, value) != 0){
+        free(object);
+        object = NULL;
+        goto end;
+    }
     end:
-    return len;
+    return object;
+}
+
+void cell_delete(CellObject* object){
+    if(object != NULL) {
+        cell_deinit(object);
+        free(object);
+    }
+}
+
+int cell_set_value(CellObject* object, const char* value){
+    int res = 0;
+    if(value == NULL){
+        res = -1;
+        goto end;
+    }
+    uint16_t len = strlen(value);
+    len = len > CELL_VALUE_LEN_MAX ? CELL_VALUE_LEN_MAX : len;
+    char *new_ptr = realloc(object->value.str, len + 1);
+    if(new_ptr == NULL){
+        res = -1;
+        goto end;
+    }
+    object->value.str = new_ptr;
+    memcpy(object->value.str, value, len);
+    object->value.str[len] = '\0';
+    object->value.len = len + 1;
+    res = len;
+    end:
+    return res;
+}
+
+int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell){
+    int res = 0;
+    if(object == NULL || cell == NULL){
+        res = -1;
+        goto end;
+    }
+    if(row >= object->rowMax || column >= object->columnMax){
+        res = -2;
+        goto end;
+    }
+    CellObject* temp = object->cellTable[row][column];
+    if(temp != NULL)
+        cell_delete(temp);
+    object->cellTable[row][column] = cell;
+    if(cell->value.len > 0){
+        uint32_t columnWidth = cell->value.len;
+        object->columnWidth[column] = object->columnWidth[column] > columnWidth ?
+                object->columnWidth[column] : columnWidth;
+    }
+    end:
+    return res;
+}
+
+CellObject* cli_static_table_get_cell(StaticTableObject* object, uint32_t row, uint32_t column){
+    CellObject* cell = NULL;
+    if(object == NULL)
+        goto end;
+    if(row >= object->rowMax || column >= object->columnMax)
+        goto end;
+    cell = object->cellTable[row][column];
+    end:
+    return cell;
+}
+
+int cli_static_table_delete_cell(StaticTableObject* object, uint32_t row, uint32_t column){
+    CellObject* cell = NULL;
+    int res = 0;
+    if(object == NULL) {
+        res = -1;
+        goto end;
+    }
+    if(row >= object->rowMax || column >= object->columnMax) {
+        res = -2;
+        goto end;
+    }
+    if(object->cellTable[row][column] != NULL) {
+        cell_delete(object->cellTable[row][column]);
+        object->cellTable[row][column] = NULL;
+    }
+    end:
+    return res;
 }
 
 void cli_static_table_delete(StaticTableObject* object){
@@ -90,7 +152,7 @@ void cli_static_table_delete(StaticTableObject* object){
             for (uint32_t i = 0; i < object->rowMax; i++) {
                 if (object->cellTable[i] != NULL) {
                     for(uint32_t j = 0; j < object->columnMax; j++)
-                        cell_deinit(&object->cellTable[i][j]);
+                        cell_delete(object->cellTable[i][j]);
                     free(object->cellTable[i]);
                 }
             }
@@ -102,7 +164,7 @@ void cli_static_table_delete(StaticTableObject* object){
     }
 }
 
-StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column, const char* str){
+StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column){
     StaticTableObject* object = malloc(sizeof(StaticTableObject));
     if(object == NULL)
         goto end;
@@ -111,7 +173,7 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column, const 
     object->rowMax = row;
 
     //malloc row
-    object->cellTable = calloc(row, sizeof(CellObject*));
+    object->cellTable = calloc(row, sizeof(CellObject**));
     if(object->cellTable == NULL) {
         cli_static_table_delete(object);
         object = NULL;
@@ -120,19 +182,11 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column, const 
 
     //malloc column
     for(uint32_t i = 0; i < row; i++){
-        object->cellTable[i] = calloc(column, sizeof(CellObject));
+        object->cellTable[i] = calloc(column, sizeof(CellObject*));
         if(object->cellTable[i] == NULL) {
             cli_static_table_delete(object);
             object = NULL;
             goto end;
-        }
-    }
-
-    for(uint32_t i = 0; i < row; i++){
-        for(uint32_t j = 0; j < column; j++) {
-            size_t len = strlen(str);
-            cell_init(&object->cellTable[i][j], str);
-            str += (len + 1);
         }
     }
 
@@ -188,9 +242,10 @@ static void cli_static_table_print_cell_line(StaticTableObject* object, uint32_t
     for(uint32_t i=0; i < object->columnMax; i++){
         snprintf(buff, 10, "%%%ds", object->columnWidth[i]);
         TABLE_PRINTF("%s", VLINE_CHAR);
-        if(object->cellTable[row][i].value.str)
-            TABLE_PRINTF(buff, object->cellTable[row][i].value.str);
-        else
+        if(object->cellTable[row][i] != NULL){
+            if(object->cellTable[row][i]->value.str)
+                TABLE_PRINTF(buff, object->cellTable[row][i]->value.str);
+        }else
             TABLE_PRINTF(buff, "");
     }
     TABLE_PRINTF("%s\n", VLINE_CHAR);

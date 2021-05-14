@@ -19,6 +19,7 @@
 // .   - - - - - -
 // n   - - - - - -
 
+
 #define TABLE_NAME_CHAR_MAX 20
 #define CELL_VALUE_LEN_MAX 1000
 
@@ -55,11 +56,14 @@ typedef struct{
     uint32_t rowMax;
     uint32_t columnMax;
     uint16_t* columnWidth;
-    CellObject** cellTable;
+    CellObject*** cellTable;
 }StaticTableObject;
 
-int cli_static_table_cell_set_value(StaticTableObject* object, uint32_t row, uint32_t column, const char* value);
+CellObject* cell_create(const char * value);
+void cell_delete(CellObject* object);
+int cell_set_value(CellObject* object, const char* value);
+int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
 void cli_static_table_delete(StaticTableObject* object);
-StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column, const char* str);
+StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
 void cli_static_table_print(StaticTableObject* object);
 #endif //C_CLI_TABLE_CLI_TABLE_H
