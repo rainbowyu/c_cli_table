@@ -11,14 +11,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include "doubly_link_list.h"
-// y x 0 1 2 3 . n
-// 0   - - - - - -
-// 1   - - - - - -
-// 2   - - - - - -
-// 3   - - - - - -
-// .   - - - - - -
-// n   - - - - - -
 
+//type1
+//┏━━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┓
+//┃ name ┃ ch1 ┃ ch2 ┃ ch3 ┃ ch4 ┃ ch5 ┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃enable┃false┃false┃false┃false┃false┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃fre   ┃20000┃20000┃20000┃20000┃20000┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃point ┃8192 ┃8192 ┃8192 ┃8192 ┃8192 ┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃cutoff┃15000┃15000┃15000┃15000┃15000┃
+//┗━━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┛
 
 #define TABLE_NAME_CHAR_MAX 20
 #define CELL_VALUE_LEN_MAX 1000
@@ -38,7 +43,11 @@
 #define CORNER_CHAR_TR "┓"
 #define CORNER_CHAR_BL "┗"
 #define CORNER_CHAR_BR "┛"
-
+typedef enum{
+    ALIGNMENT_LEFT = 0,
+    ALIGNMENT_RIGHT,
+    ALIGNMENT_CENTER,
+}TABLE_ALIGNMENT;
 
 typedef struct{
     uint16_t len;
@@ -48,6 +57,7 @@ typedef struct{
 typedef struct{
     uint32_t row;
     uint32_t column;
+    TABLE_ALIGNMENT alignment;
     CellValue value;
 }CellObject;
 
@@ -59,11 +69,13 @@ typedef struct{
     CellObject*** cellTable;
 }StaticTableObject;
 
+const char *c_cli_table_version_get();
+StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
+void cli_static_table_delete(StaticTableObject* object);
 CellObject* cell_create(const char * value);
 void cell_delete(CellObject* object);
 int cell_set_value(CellObject* object, const char* value);
+int cell_set_align(CellObject* object, TABLE_ALIGNMENT align);
 int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
-void cli_static_table_delete(StaticTableObject* object);
-StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
 void cli_static_table_print(StaticTableObject* object);
 #endif //C_CLI_TABLE_CLI_TABLE_H

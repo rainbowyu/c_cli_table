@@ -2,7 +2,7 @@
 // Created by 喻时耕宇 on 2021/4/30.
 //
 #include "cli_table.h"
-const char *version = "v0.1.0";
+static const char *version = "v0.2.0";
 
 static int cell_init(CellObject* object, const char* value){
     int res = 0;
@@ -18,6 +18,7 @@ static int cell_init(CellObject* object, const char* value){
         object->value.len = 0;
         object->value.str = NULL;
     }
+    object->alignment = ALIGNMENT_LEFT;
     end:
     return res;
 }
@@ -73,7 +74,7 @@ void cell_delete(CellObject* object){
 
 int cell_set_value(CellObject* object, const char* value){
     int res = 0;
-    if(value == NULL){
+    if(value == NULL || object == NULL){
         res = -1;
         goto end;
     }
@@ -89,6 +90,17 @@ int cell_set_value(CellObject* object, const char* value){
     object->value.str[len] = '\0';
     object->value.len = len + 1;
     res = len;
+    end:
+    return res;
+}
+
+int cell_set_align(CellObject* object, TABLE_ALIGNMENT align) {
+    int res = 0;
+    if(align > ALIGNMENT_CENTER || object == NULL){
+        res = -1;
+        goto end;
+    }
+    object->alignment = align;
     end:
     return res;
 }
@@ -236,17 +248,60 @@ static void cli_static_table_print_bottom_line(StaticTableObject* object) {
     TABLE_PRINTF("%s\n", CORNER_CHAR_BR);
 }
 
+static void print_cell(CellObject* object, uint16_t columnWidth){
+    uint16_t space;
+    if(object->value.str){
+        switch(object->alignment){
+            case ALIGNMENT_LEFT:
+                space = 0;
+                break;
+            case ALIGNMENT_RIGHT:
+                space = columnWidth - object->value.len;
+                break;
+            case ALIGNMENT_CENTER:
+                space = ((uint16_t)(columnWidth-object->value.len)>>1U);
+                break;
+            default:
+                space = 0;
+                break;
+        }
+        for(uint16_t i=0; i < space; i++)
+            TABLE_PRINTF(" ");
+
+        TABLE_PRINTF("%s", object->value.str);
+
+        switch(object->alignment){
+            case ALIGNMENT_LEFT:
+                space = columnWidth - object->value.len;
+                break;
+            case ALIGNMENT_RIGHT:
+                space = 0;
+                break;
+            case ALIGNMENT_CENTER:
+                space = columnWidth - space - object->value.len;
+                break;
+            default:
+                space = columnWidth - object->value.len;
+                break;
+        }
+        for(uint16_t i=0; i < space; i++)
+            TABLE_PRINTF(" ");
+    } else
+        for(uint16_t i=0; i < columnWidth; i++)
+            TABLE_PRINTF(" ");
+
+}
+
 static void cli_static_table_print_cell_line(StaticTableObject* object, uint32_t row) {
-    char buff[10];
-    memset(buff, 0 , 10);
     for(uint32_t i=0; i < object->columnMax; i++){
-        snprintf(buff, 10, "%%%ds", object->columnWidth[i]);
+        uint16_t columnWidth = object->columnWidth[i];
         TABLE_PRINTF("%s", VLINE_CHAR);
-        if(object->cellTable[row][i] != NULL){
-            if(object->cellTable[row][i]->value.str)
-                TABLE_PRINTF(buff, object->cellTable[row][i]->value.str);
-        }else
-            TABLE_PRINTF(buff, "");
+        if(object->cellTable[row][i] != NULL) {
+            print_cell(object->cellTable[row][i], columnWidth);
+        }else {
+            for(uint16_t j=0; j<columnWidth; j++)
+                TABLE_PRINTF(" ");
+        }
     }
     TABLE_PRINTF("%s\n", VLINE_CHAR);
 }
@@ -261,4 +316,8 @@ void cli_static_table_print(StaticTableObject* object){
         }
         cli_static_table_print_bottom_line(object);
     }
+}
+
+const char *c_cli_table_version_get(){
+    return version;
 }

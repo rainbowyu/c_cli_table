@@ -12,9 +12,15 @@ int main() {
     StaticTableObject* table;
     table = cli_static_table_create(5, 6);
     if(table != NULL) {
-        for(uint32_t i = 0; i < 5; i++){
+        for(uint32_t j =0; j < 6; j++){
+            CellObject* cell = cell_create(tableStr[0][j]);
+            cell_set_align(cell, ALIGNMENT_CENTER);
+            cli_static_table_set_cell(table, 0, j, cell);
+        }
+        for(uint32_t i = 1; i < 5; i++){
             for(uint32_t j =0; j < 6; j++){
                 CellObject* cell = cell_create(tableStr[i][j]);
+                cell_set_align(cell, ALIGNMENT_LEFT);
                 cli_static_table_set_cell(table, i, j, cell);
             }
         }
