@@ -10,7 +10,7 @@ const char* tableStr[5][6] = {
 
 int main() {
     StaticTableObject* table;
-    table = cli_static_table_create(5, 6, **tableStr);ß
+    table = cli_static_table_create(5, 6, **tableStr);
     if(table != NULL) {
         cli_static_table_print(table);
         cli_static_table_delete(table);
