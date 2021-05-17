@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "cli_table.h"
+
 const char* tableStr[5][6] = {
         {"name", "ch1", "ch2", "ch3", "ch4", "ch5"},
         {"enable", "false", "false", "false", "false", "false"},
@@ -7,6 +8,8 @@ const char* tableStr[5][6] = {
         {"point", "8192", "8192", "8192", "8192", "8192"},
         {"cutoff", "15000", "15000", "15000", "15000", "15000"},
 };
+
+extern int test_csv_split_on_newline();
 
 int main() {
     StaticTableObject* table;
@@ -27,5 +30,7 @@ int main() {
         cli_static_table_print(table);
         cli_static_table_delete(table);
     }
+
+    test_csv_split_on_newline();
     return 0;
 }
