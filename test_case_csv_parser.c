@@ -20,9 +20,12 @@ int test_csv_split_on_newline(void){
         printf("=====================test_csv_split_on_newline=======================\n");
         printf("split on newlines, row:%d\n", csv_line_object->row);
         for(uint16_t i = 0; i < csv_line_object->row; i++){
-            printf("%03d:", i);
+            printf("[%02d]:", i);
             for(uint16_t j = 0; j < csv_line_object->rowLenArray[i]; j++){
-                printf("%c", csv_line_object->value[i][j]);
+                if(csv_line_object->value[i][j] == '\n')
+                    printf("\\n");
+                else
+                    printf("%c", csv_line_object->value[i][j]);
             }
             printf("\n");
         }
@@ -48,10 +51,11 @@ int test_csv_parse(void){
                             else
                                 printf("%c", csv_object->field[i][j]->value[k]);
                         }
-                        printf("\n");
+                        printf(" ");
                     }else
                         printf("csv_object->field[%d][%d] is NULL\n", i, j);
                 }
+                printf("\n");
             } else
                 printf("csv_object->rowFieldCount is NULL\n");
         }

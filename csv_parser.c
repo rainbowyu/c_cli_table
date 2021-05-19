@@ -14,7 +14,7 @@ static CSV_STRUCT_FIELD* csv_fields_create(uint16_t len, const char* value){
     return field;
 }
 
-static uint16_t csv_count_lines(const char *csvStr){
+static uint16_t csv_lines_fields_count(const char *csvStr){
     const char *ptr;
     uint8_t flag;
     uint16_t lines;
@@ -47,7 +47,7 @@ CSV_STRUCT_SPLIT_LINE* csv_split_on_lines_create(const char *csvStr){
         goto end;
 
     //get how many row we need
-    lines = csv_count_lines(csvStr);
+    lines = csv_lines_fields_count(csvStr);
     csvSplitLine->row = lines;
 #ifdef DEBUG
     printf("csv lines: %d\n", lines);
@@ -258,4 +258,13 @@ void csv_delete(CSV_STRUCT *csv) {
             free(csv->rowFieldCount);
         free(csv);
     }
+}
+
+CSV_STRUCT_FIELD* csv_field_get(CSV_STRUCT *csv, uint16_t row, uint16_t column){
+    CSV_STRUCT_FIELD* field = NULL;
+    if(csv)
+        if(row < csv->row)
+            if(column < csv->rowFieldCount[row])
+                field = csv->field[row][column];
+    return field;
 }

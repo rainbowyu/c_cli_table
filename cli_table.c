@@ -4,10 +4,10 @@
 #include "cli_table.h"
 static const char *version = "v0.2.0";
 
-static int cell_init(CellObject* object, const char* value){
+static int cell_init(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
     if(value != NULL) {
-        object->value.len = strlen(value);
+        object->value.len = len;
         object->value.str = malloc(object->value.len + 1);
         if(object->value.str == NULL){
             res = -1;
@@ -52,11 +52,11 @@ static uint32_t static_table_column_get_width(StaticTableObject* object, uint32_
     return width;
 }
 
-CellObject* cell_create(const char * value){
+CellObject *cell_create(const char *value, uint16_t len) {
     CellObject* object = calloc(1, sizeof(CellObject));
     if(object == NULL)
         goto end;
-    if(cell_init(object, value) != 0){
+    if(cell_init(object, value, len) != 0){
         free(object);
         object = NULL;
         goto end;
@@ -213,6 +213,36 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column){
 
     end:
     return object;
+}
+
+StaticTableObject* cli_static_table_csv_str_create(const char* csvStr) {
+    StaticTableObject* sTable = NULL;
+    CSV_STRUCT* csv = csv_parser(csvStr);
+    if(csv == NULL)
+        goto end;
+    uint16_t columnMax = 0;
+    for(uint16_t i = 0; i < csv->row; i++){
+        if(columnMax < csv->rowFieldCount[i])
+            columnMax = csv->rowFieldCount[i];
+    }
+    sTable = cli_static_table_create(csv->row, columnMax);
+    if(sTable == NULL){
+        csv_delete(csv);
+        goto end;
+    }
+    for(uint16_t i = 0; i < csv->row; i++){
+        for(uint16_t j = 0; j < csv->rowFieldCount[i]; j++){
+            CellObject* cell = cell_create(csv->field[i][j]->value, csv->field[i][j]->len);
+            if(cell == NULL){
+                cli_static_table_delete(sTable);
+                sTable = NULL;
+                goto end;
+            }
+            cli_static_table_set_cell(sTable, i, j, cell);
+        }
+    }
+    end:
+    return sTable;
 }
 
 static void cli_static_table_print_line(StaticTableObject* object) {

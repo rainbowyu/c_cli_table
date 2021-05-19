@@ -17,13 +17,13 @@ int test_cli_static_table_create(void){
         printf("\n");
         printf("=====================cli_static_table_create=======================\n");
         for(uint32_t j =0; j < 6; j++){
-            CellObject* cell = cell_create(tableStr[0][j]);
+            CellObject* cell = cell_create(tableStr[0][j], strlen(tableStr[0][j]));
             cell_set_align(cell, ALIGNMENT_CENTER);
             cli_static_table_set_cell(table, 0, j, cell);
         }
         for(uint32_t i = 1; i < 5; i++){
             for(uint32_t j =0; j < 6; j++){
-                CellObject* cell = cell_create(tableStr[i][j]);
+                CellObject* cell = cell_create(tableStr[i][j], strlen(tableStr[i][j]));
                 cell_set_align(cell, ALIGNMENT_LEFT);
                 cli_static_table_set_cell(table, i, j, cell);
             }

@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include "csv_parser.h"
 #include "doubly_link_list.h"
 
 //type1
@@ -72,7 +73,7 @@ typedef struct{
 const char *c_cli_table_version_get();
 StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
 void cli_static_table_delete(StaticTableObject* object);
-CellObject* cell_create(const char * value);
+CellObject *cell_create(const char *value, uint16_t len);
 void cell_delete(CellObject* object);
 int cell_set_value(CellObject* object, const char* value);
 int cell_set_align(CellObject* object, TABLE_ALIGNMENT align);
