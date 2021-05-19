@@ -13,37 +13,35 @@
 #include "csv_parser.h"
 #include "doubly_link_list.h"
 
-//type1
-//┏━━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┓
-//┃ name ┃ ch1 ┃ ch2 ┃ ch3 ┃ ch4 ┃ ch5 ┃
-//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
-//┃enable┃false┃false┃false┃false┃false┃
-//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
-//┃fre   ┃20000┃20000┃20000┃20000┃20000┃
-//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
-//┃point ┃8192 ┃8192 ┃8192 ┃8192 ┃8192 ┃
-//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
-//┃cutoff┃15000┃15000┃15000┃15000┃15000┃
-//┗━━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┛
-
 #define TABLE_NAME_CHAR_MAX 20
 #define CELL_VALUE_LEN_MAX 1000
 
 //print define
 #define TABLE_PRINTF printf
-#define HLINE_CHAR  "━"
-#define VLINE_CHAR  "┃"
 #define BACK_SPACE 0x08
-#define CORNER_CHAR_TM "┳"
-#define CORNER_CHAR_BM "┻"
-#define CORNER_CHAR_MM "╋"
-#define CORNER_CHAR_LM "┣"
-#define CORNER_CHAR_RM "┫"
 
-#define CORNER_CHAR_TL "┏"
-#define CORNER_CHAR_TR "┓"
-#define CORNER_CHAR_BL "┗"
-#define CORNER_CHAR_BR "┛"
+typedef enum{
+    HLINE_CHAR,
+    VLINE_CHAR,
+    CORNER_CHAR_TM,
+    CORNER_CHAR_BM,
+    CORNER_CHAR_MM,
+    CORNER_CHAR_LM,
+    CORNER_CHAR_RM,
+    CORNER_CHAR_TL,
+    CORNER_CHAR_TR,
+    CORNER_CHAR_BL,
+    CORNER_CHAR_BR,
+    CHAR_MAX,
+}TABLE_PRINT_CHAR;
+
+typedef enum{
+    PRINT_TYPE_DEFAULT,
+    PRINT_TYPE_2,
+    PRINT_TYPE_3,
+    PRINT_TYPE_CUSTOM,
+}TABLE_PRINT_TYPE;
+
 typedef enum{
     ALIGNMENT_LEFT = 0,
     ALIGNMENT_RIGHT,
@@ -64,6 +62,7 @@ typedef struct{
 
 typedef struct{
     char name[TABLE_NAME_CHAR_MAX];
+    const char* printChar[CHAR_MAX];
     uint32_t rowMax;
     uint32_t columnMax;
     uint16_t* columnWidth;
@@ -74,10 +73,12 @@ const char *c_cli_table_version_get();
 StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
 StaticTableObject* cli_static_table_csv_str_create(const char* csvStr);
 void cli_static_table_delete(StaticTableObject* object);
+void cli_static_table_printtype_set(StaticTableObject* object, TABLE_PRINT_TYPE type, const char* charType[CHAR_MAX]);
+
 CellObject *cell_create(const char *value, uint16_t len);
 void cell_delete(CellObject* object);
-int cell_set_value(CellObject *object, const char *value, uint16_t len);
-int cell_set_align(CellObject* object, TABLE_ALIGNMENT align);
-int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
+int cell_value_set(CellObject *object, const char *value, uint16_t len);
+int cell_align_set(CellObject* object, TABLE_ALIGNMENT align);
+int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
 void cli_static_table_print(StaticTableObject* object);
 #endif //C_CLI_TABLE_CLI_TABLE_H

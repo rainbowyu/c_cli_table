@@ -2,7 +2,57 @@
 // Created by yushigengyu on 2021/4/30.
 //
 #include "cli_table.h"
-static const char *version = "v0.3.1";
+static const char *version = "v0.4.0";
+
+//type default
+//╭────────┬───────┬───────┬───────┬───────┬───────╮
+//│"name"  │"ch1"  │"ch2"  │"ch3"  │"ch4"  │"ch5"  │
+//├────────┼───────┼───────┼───────┼───────┼───────┤
+//│"enable"│"false"│"false"│"false"│"false"│"false"│
+//├────────┼───────┼───────┼───────┼───────┼───────┤
+//│"fre"   │"20000"│"20000"│"20000"│"20000"│"20000"│
+//├────────┼───────┼───────┼───────┼───────┼───────┤
+//│"point" │"8192" │"8192" │"8192" │"8192" │"8192" │
+//├────────┼───────┼───────┼───────┼───────┼───────┤
+//│"cutoff"│"15000"│"15000"│"15000"│"15000"│"15000"│
+//╰────────┴───────┴───────┴───────┴───────┴───────╯
+
+static const char* table_print_char_default[] = {
+        "─" , "│", "┬", "┴", "┼", "├", "┤", "╭", "╮", "╰", "╯"
+};
+
+//type2
+//┏━━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┳━━━━━┓
+//┃ name ┃ ch1 ┃ ch2 ┃ ch3 ┃ ch4 ┃ ch5 ┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃enable┃false┃false┃false┃false┃false┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃fre   ┃20000┃20000┃20000┃20000┃20000┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃point ┃8192 ┃8192 ┃8192 ┃8192 ┃8192 ┃
+//┣━━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━╋━━━━━┫
+//┃cutoff┃15000┃15000┃15000┃15000┃15000┃
+//┗━━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┻━━━━━┛
+static const char* table_print_char_type2[CHAR_MAX] = {
+        "━" , "┃", "┳", "┻", "╋", "┣", "┫", "┏", "┓", "┗", "┛"
+};
+
+//type3
+//╔════════╦═══════╦═══════╦═══════╦═══════╦═══════╗
+//║"name"  ║"ch1"  ║"ch2"  ║"ch3"  ║"ch4"  ║"ch5"  ║
+//╠════════╬═══════╬═══════╬═══════╬═══════╬═══════╣
+//║"enable"║"false"║"false"║"false"║"false"║"false"║
+//╠════════╬═══════╬═══════╬═══════╬═══════╬═══════╣
+//║"fre"   ║"20000"║"20000"║"20000"║"20000"║"20000"║
+//╠════════╬═══════╬═══════╬═══════╬═══════╬═══════╣
+//║"point" ║"8192" ║"8192" ║"8192" ║"8192" ║"8192" ║
+//╠════════╬═══════╬═══════╬═══════╬═══════╬═══════╣
+//║"cutoff"║"15000"║"15000"║"15000"║"15000"║"15000"║
+//╚════════╩═══════╩═══════╩═══════╩═══════╩═══════╝
+static const char* table_print_char_type3[CHAR_MAX] = {
+        "═" , "║", "╦", "╩", "╬", "╠", "╣", "╔", "╗", "╚", "╝"
+};
+
 
 static int cell_init(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
@@ -32,7 +82,7 @@ static void cell_deinit(CellObject* object){
     }
 }
 
-static uint32_t static_table_row_get_width(StaticTableObject* object, uint32_t row){
+static uint32_t static_table_row_width_get(StaticTableObject* object, uint32_t row){
     uint32_t width = 0;
     for(uint32_t i = 0; i < object->columnMax; i++)
         if(object->cellTable[row][i] != NULL)
@@ -43,7 +93,7 @@ static uint32_t static_table_row_get_width(StaticTableObject* object, uint32_t r
     return width;
 }
 
-static uint32_t static_table_column_get_width(StaticTableObject* object, uint32_t column){
+static uint32_t static_table_column_width_get(StaticTableObject* object, uint32_t column){
     uint32_t width = 0;
     for(uint32_t i = 0; i < object->rowMax; i++){
         if(object->cellTable[i][column] != NULL)
@@ -73,7 +123,7 @@ void cell_delete(CellObject* object){
     }
 }
 
-int cell_set_value(CellObject *object, const char *value, uint16_t len) {
+int cell_value_set(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
     if(value == NULL || object == NULL){
         res = -1;
@@ -94,7 +144,7 @@ int cell_set_value(CellObject *object, const char *value, uint16_t len) {
     return res;
 }
 
-int cell_set_align(CellObject* object, TABLE_ALIGNMENT align) {
+int cell_align_set(CellObject* object, TABLE_ALIGNMENT align) {
     int res = 0;
     if(align > ALIGNMENT_CENTER || object == NULL){
         res = -1;
@@ -105,7 +155,7 @@ int cell_set_align(CellObject* object, TABLE_ALIGNMENT align) {
     return res;
 }
 
-int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell){
+int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell){
     int res = 0;
     if(object == NULL || cell == NULL){
         res = -1;
@@ -128,7 +178,36 @@ int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t 
     return res;
 }
 
-CellObject* cli_static_table_get_cell(StaticTableObject* object, uint32_t row, uint32_t column){
+void cli_static_table_printtype_set(StaticTableObject* object, TABLE_PRINT_TYPE type, const char* charType[CHAR_MAX]) {
+    if(object){
+        switch(type){
+            case PRINT_TYPE_DEFAULT:
+                for(TABLE_PRINT_CHAR i = HLINE_CHAR; i < CHAR_MAX; i++)
+                    object->printChar[i] = table_print_char_default[i];
+                break;
+            case PRINT_TYPE_2:
+                for(TABLE_PRINT_CHAR i = HLINE_CHAR; i < CHAR_MAX; i++)
+                    object->printChar[i] = table_print_char_type2[i];
+                break;
+            case PRINT_TYPE_3:
+                for(TABLE_PRINT_CHAR i = HLINE_CHAR; i < CHAR_MAX; i++)
+                    object->printChar[i] = table_print_char_type3[i];
+                break;
+            case PRINT_TYPE_CUSTOM:
+                for(TABLE_PRINT_CHAR i = HLINE_CHAR; i < CHAR_MAX; i++){
+                    if(charType[i])
+                        object->printChar[i] = charType[i];
+                    else
+                        object->printChar[i] = table_print_char_default[i];
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+CellObject* cli_static_table_cell_get(StaticTableObject* object, uint32_t row, uint32_t column){
     CellObject* cell = NULL;
     if(object == NULL)
         goto end;
@@ -139,7 +218,7 @@ CellObject* cli_static_table_get_cell(StaticTableObject* object, uint32_t row, u
     return cell;
 }
 
-int cli_static_table_delete_cell(StaticTableObject* object, uint32_t row, uint32_t column){
+int cli_static_table_cell_delete(StaticTableObject* object, uint32_t row, uint32_t column){
     CellObject* cell = NULL;
     int res = 0;
     if(object == NULL) {
@@ -183,6 +262,7 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column){
     object->columnWidth = NULL;
     object->columnMax = column;
     object->rowMax = row;
+    cli_static_table_printtype_set(object, PRINT_TYPE_DEFAULT, NULL);
 
     //malloc row
     object->cellTable = calloc(row, sizeof(CellObject**));
@@ -209,7 +289,7 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column){
         goto end;
     }
     for(uint32_t i = 0; i < column; i++)
-        object->columnWidth[i] = static_table_column_get_width(object, i);
+        object->columnWidth[i] = static_table_column_width_get(object, i);
 
     end:
     return object;
@@ -240,7 +320,7 @@ StaticTableObject* cli_static_table_csv_str_create(const char* csvStr) {
                     sTable = NULL;
                     goto end;
                 }
-                cli_static_table_set_cell(sTable, i, j, cell);
+                cli_static_table_cell_set(sTable, i, j, cell);
             }
         }
     }
@@ -249,36 +329,36 @@ StaticTableObject* cli_static_table_csv_str_create(const char* csvStr) {
 }
 
 static void cli_static_table_print_line(StaticTableObject* object) {
-    TABLE_PRINTF("%s", CORNER_CHAR_LM);
+    TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_LM]);
     for(uint32_t i=0; i < object->columnMax; i++) {
         for(uint16_t j=0; j < object->columnWidth[i]; j++)
-            TABLE_PRINTF("%s", HLINE_CHAR);
-        TABLE_PRINTF("%s", CORNER_CHAR_MM);
+            TABLE_PRINTF("%s", object->printChar[HLINE_CHAR]);
+        TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_MM]);
     }
     TABLE_PRINTF("%c", BACK_SPACE);
-    TABLE_PRINTF("%s\n", CORNER_CHAR_RM);
+    TABLE_PRINTF("%s\n", object->printChar[CORNER_CHAR_RM]);
 }
 
 static void cli_static_table_print_top_line(StaticTableObject* object) {
-    TABLE_PRINTF("%s", CORNER_CHAR_TL);
+    TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_TL]);
     for(uint32_t i=0; i < object->columnMax; i++) {
         for(uint16_t j=0; j < object->columnWidth[i]; j++)
-            TABLE_PRINTF("%s", HLINE_CHAR);
-        TABLE_PRINTF("%s", CORNER_CHAR_TM);
+            TABLE_PRINTF("%s", object->printChar[HLINE_CHAR]);
+        TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_TM]);
     }
     TABLE_PRINTF("%c", BACK_SPACE);
-    TABLE_PRINTF("%s\n", CORNER_CHAR_TR);
+    TABLE_PRINTF("%s\n", object->printChar[CORNER_CHAR_TR]);
 }
 
 static void cli_static_table_print_bottom_line(StaticTableObject* object) {
-    TABLE_PRINTF("%s", CORNER_CHAR_BL);
+    TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_BL]);
     for(uint32_t i=0; i < object->columnMax; i++) {
         for(uint16_t j=0; j < object->columnWidth[i]; j++)
-            TABLE_PRINTF("%s", HLINE_CHAR);
-        TABLE_PRINTF("%s", CORNER_CHAR_BM);
+            TABLE_PRINTF("%s", object->printChar[HLINE_CHAR]);
+        TABLE_PRINTF("%s", object->printChar[CORNER_CHAR_BM]);
     }
     TABLE_PRINTF("%c", BACK_SPACE);
-    TABLE_PRINTF("%s\n", CORNER_CHAR_BR);
+    TABLE_PRINTF("%s\n", object->printChar[CORNER_CHAR_BR]);
 }
 
 static void print_cell(CellObject* object, uint16_t columnWidth){
@@ -328,7 +408,7 @@ static void print_cell(CellObject* object, uint16_t columnWidth){
 static void cli_static_table_print_cell_line(StaticTableObject* object, uint32_t row) {
     for(uint32_t i=0; i < object->columnMax; i++){
         uint16_t columnWidth = object->columnWidth[i];
-        TABLE_PRINTF("%s", VLINE_CHAR);
+        TABLE_PRINTF("%s", object->printChar[VLINE_CHAR]);
         if(object->cellTable[row][i] != NULL) {
             print_cell(object->cellTable[row][i], columnWidth);
         }else {
@@ -336,7 +416,7 @@ static void cli_static_table_print_cell_line(StaticTableObject* object, uint32_t
                 TABLE_PRINTF(" ");
         }
     }
-    TABLE_PRINTF("%s\n", VLINE_CHAR);
+    TABLE_PRINTF("%s\n", object->printChar[VLINE_CHAR]);
 }
 
 void cli_static_table_print(StaticTableObject* object){
