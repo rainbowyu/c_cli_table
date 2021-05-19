@@ -76,7 +76,7 @@ StaticTableObject* cli_static_table_csv_str_create(const char* csvStr);
 void cli_static_table_delete(StaticTableObject* object);
 CellObject *cell_create(const char *value, uint16_t len);
 void cell_delete(CellObject* object);
-int cell_set_value(CellObject* object, const char* value);
+int cell_set_value(CellObject *object, const char *value, uint16_t len);
 int cell_set_align(CellObject* object, TABLE_ALIGNMENT align);
 int cli_static_table_set_cell(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
 void cli_static_table_print(StaticTableObject* object);

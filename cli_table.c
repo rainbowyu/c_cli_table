@@ -2,7 +2,7 @@
 // Created by yushigengyu on 2021/4/30.
 //
 #include "cli_table.h"
-static const char *version = "v0.3.0";
+static const char *version = "v0.3.1";
 
 static int cell_init(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
@@ -73,13 +73,12 @@ void cell_delete(CellObject* object){
     }
 }
 
-int cell_set_value(CellObject* object, const char* value){
+int cell_set_value(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
     if(value == NULL || object == NULL){
         res = -1;
         goto end;
     }
-    uint16_t len = strlen(value);
     len = len > CELL_VALUE_LEN_MAX ? CELL_VALUE_LEN_MAX : len;
     char *new_ptr = realloc(object->value.str, len + 1);
     if(new_ptr == NULL){
@@ -89,7 +88,7 @@ int cell_set_value(CellObject* object, const char* value){
     object->value.str = new_ptr;
     memcpy(object->value.str, value, len);
     object->value.str[len] = '\0';
-    object->value.len = len + 1;
+    object->value.len = len;
     res = len;
     end:
     return res;
