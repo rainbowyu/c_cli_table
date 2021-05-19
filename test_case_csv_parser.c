@@ -2,7 +2,7 @@
 // Created by yushigengyu on 2021/5/17.
 //
 #include "csv_parser.h"
-const char* csvString =
+static const char* csvString =
         "foo,bar,baz\n"                                 //000 foo,bar,baz
         "foo,\"bar\",baz\n"                             //001 foo,"bar",baz
         "foo,\"b\"\"ar\",baz\n"                         //002 foo,"b""ar",baz
@@ -14,10 +14,10 @@ const char* csvString =
         "foo,bar,baz";                                  //008 foo,bar,baz
 
 int test_csv_split_on_newline(void){
+    printf("\n");
+    printf("=====================test_csv_split_on_newline=======================\n");
     CSV_STRUCT_SPLIT_LINE* csv_line_object = csv_split_on_lines_create(csvString);
     if(csv_line_object){
-        printf("\n");
-        printf("=====================test_csv_split_on_newline=======================\n");
         printf("split on newlines, row:%d\n", csv_line_object->row);
         for(uint16_t i = 0; i < csv_line_object->row; i++){
             printf("[%02d]:", i);
@@ -35,10 +35,10 @@ int test_csv_split_on_newline(void){
 }
 
 int test_csv_parse(void){
+    printf("\n");
+    printf("=====================test_csv_parse=======================\n");
     CSV_STRUCT* csv_object = csv_parser(csvString);
     if(csv_object){
-        printf("\n");
-        printf("=====================test_csv_parse=======================\n");
         printf("csv date print, row :%d\n", csv_object->row);
         for(uint16_t i = 0; i < csv_object->row; i++){
             if(csv_object->rowFieldCount) {

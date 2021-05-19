@@ -2,7 +2,7 @@
 // Created by yushigengyu on 2021/4/30.
 //
 #include "cli_table.h"
-static const char *version = "v0.2.0";
+static const char *version = "v0.3.0";
 
 static int cell_init(CellObject *object, const char *value, uint16_t len) {
     int res = 0;
@@ -14,6 +14,7 @@ static int cell_init(CellObject *object, const char *value, uint16_t len) {
             goto end;
         }
         memcpy(object->value.str, value, object->value.len);
+        object->value.str[len] = '\0';
     }else {
         object->value.len = 0;
         object->value.str = NULL;
@@ -232,13 +233,16 @@ StaticTableObject* cli_static_table_csv_str_create(const char* csvStr) {
     }
     for(uint16_t i = 0; i < csv->row; i++){
         for(uint16_t j = 0; j < csv->rowFieldCount[i]; j++){
-            CellObject* cell = cell_create(csv->field[i][j]->value, csv->field[i][j]->len);
-            if(cell == NULL){
-                cli_static_table_delete(sTable);
-                sTable = NULL;
-                goto end;
+            CSV_STRUCT_FIELD* field = csv_field_get(csv, i , j);
+            if(field != NULL) {
+                CellObject *cell = cell_create(field->value, field->len);
+                if (cell == NULL) {
+                    cli_static_table_delete(sTable);
+                    sTable = NULL;
+                    goto end;
+                }
+                cli_static_table_set_cell(sTable, i, j, cell);
             }
-            cli_static_table_set_cell(sTable, i, j, cell);
         }
     }
     end:

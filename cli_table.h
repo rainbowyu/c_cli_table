@@ -72,6 +72,7 @@ typedef struct{
 
 const char *c_cli_table_version_get();
 StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
+StaticTableObject* cli_static_table_csv_str_create(const char* csvStr);
 void cli_static_table_delete(StaticTableObject* object);
 CellObject *cell_create(const char *value, uint16_t len);
 void cell_delete(CellObject* object);
