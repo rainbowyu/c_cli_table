@@ -2,7 +2,7 @@
 // Created by yushigengyu on 2021/4/30.
 //
 #include "cli_table.h"
-static const char *version = "v0.4.0";
+static const char *version = "v0.5.0";
 
 //type default
 //╭────────┬───────┬───────┬───────┬───────┬───────╮
@@ -144,7 +144,14 @@ int cell_value_set(CellObject *object, const char *value, uint16_t len) {
     return res;
 }
 
-int cell_align_set(CellObject* object, TABLE_ALIGNMENT align) {
+CellValue* cell_value_get(CellObject *object){
+    CellValue* cellValue = NULL;
+    if(object)
+        cellValue = &object->value;
+    return cellValue;
+}
+
+int cell_align_set(CellObject* object, TABLE_ALIGNMENT align){
     int res = 0;
     if(align > ALIGNMENT_CENTER || object == NULL){
         res = -1;
@@ -153,6 +160,10 @@ int cell_align_set(CellObject* object, TABLE_ALIGNMENT align) {
     object->alignment = align;
     end:
     return res;
+}
+
+TABLE_ALIGNMENT cell_align_get(CellObject* object){
+    return object->alignment;
 }
 
 int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell){
@@ -176,6 +187,17 @@ int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t 
     }
     end:
     return res;
+}
+
+CellObject* cli_static_table_cell_get(StaticTableObject* object, uint32_t row, uint32_t column){
+    CellObject* cell = NULL;
+    if(object == NULL)
+        goto end;
+    if(row >= object->rowMax || column >= object->columnMax)
+        goto end;
+    cell = object->cellTable[row][column];
+    end:
+    return cell;
 }
 
 void cli_static_table_printtype_set(StaticTableObject* object, TABLE_PRINT_TYPE type, const char* charType[CHAR_MAX]) {
@@ -204,18 +226,29 @@ void cli_static_table_printtype_set(StaticTableObject* object, TABLE_PRINT_TYPE 
             default:
                 break;
         }
+        object->printType = type;
     }
 }
+TABLE_PRINT_TYPE cli_static_table_printtype_get(StaticTableObject* object){
+    TABLE_PRINT_TYPE type = -1;
+    if(object){
+        type = object->printType;
+    }
+    return type;
+}
 
-CellObject* cli_static_table_cell_get(StaticTableObject* object, uint32_t row, uint32_t column){
-    CellObject* cell = NULL;
-    if(object == NULL)
-        goto end;
-    if(row >= object->rowMax || column >= object->columnMax)
-        goto end;
-    cell = object->cellTable[row][column];
-    end:
-    return cell;
+uint32_t cli_static_table_row_get(StaticTableObject* object){
+    uint32_t row = 0;
+    if(object)
+        row = object->rowMax;
+    return row;
+}
+
+uint32_t cli_static_table_column_get(StaticTableObject* object){
+    uint32_t column= 0;
+    if(object)
+        column = object->columnMax;
+    return column;
 }
 
 int cli_static_table_cell_delete(StaticTableObject* object, uint32_t row, uint32_t column){
@@ -235,24 +268,6 @@ int cli_static_table_cell_delete(StaticTableObject* object, uint32_t row, uint32
     }
     end:
     return res;
-}
-
-void cli_static_table_delete(StaticTableObject* object){
-    if(object) {
-        if(object->cellTable){
-            for (uint32_t i = 0; i < object->rowMax; i++) {
-                if (object->cellTable[i] != NULL) {
-                    for(uint32_t j = 0; j < object->columnMax; j++)
-                        cell_delete(object->cellTable[i][j]);
-                    free(object->cellTable[i]);
-                }
-            }
-            free(object->cellTable);
-        }
-        if(object->columnWidth)
-            free(object->columnWidth);
-        free(object);
-    }
 }
 
 StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column){
@@ -326,6 +341,24 @@ StaticTableObject* cli_static_table_csv_str_create(const char* csvStr) {
     }
     end:
     return sTable;
+}
+
+void cli_static_table_delete(StaticTableObject* object){
+    if(object) {
+        if(object->cellTable){
+            for (uint32_t i = 0; i < object->rowMax; i++) {
+                if (object->cellTable[i] != NULL) {
+                    for(uint32_t j = 0; j < object->columnMax; j++)
+                        cell_delete(object->cellTable[i][j]);
+                    free(object->cellTable[i]);
+                }
+            }
+            free(object->cellTable);
+        }
+        if(object->columnWidth)
+            free(object->columnWidth);
+        free(object);
+    }
 }
 
 static void cli_static_table_print_line(StaticTableObject* object) {
@@ -411,10 +444,9 @@ static void cli_static_table_print_cell_line(StaticTableObject* object, uint32_t
         TABLE_PRINTF("%s", object->printChar[VLINE_CHAR]);
         if(object->cellTable[row][i] != NULL) {
             print_cell(object->cellTable[row][i], columnWidth);
-        }else {
+        }else
             for(uint16_t j=0; j<columnWidth; j++)
                 TABLE_PRINTF(" ");
-        }
     }
     TABLE_PRINTF("%s\n", object->printChar[VLINE_CHAR]);
 }

@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "csv_parser.h"
-#include "doubly_link_list.h"
 
 #define TABLE_NAME_CHAR_MAX 20
 #define CELL_VALUE_LEN_MAX 1000
@@ -62,6 +61,7 @@ typedef struct{
 
 typedef struct{
     char name[TABLE_NAME_CHAR_MAX];
+    TABLE_PRINT_TYPE printType;
     const char* printChar[CHAR_MAX];
     uint32_t rowMax;
     uint32_t columnMax;
@@ -74,11 +74,16 @@ StaticTableObject* cli_static_table_create(uint32_t row, uint32_t column);
 StaticTableObject* cli_static_table_csv_str_create(const char* csvStr);
 void cli_static_table_delete(StaticTableObject* object);
 void cli_static_table_printtype_set(StaticTableObject* object, TABLE_PRINT_TYPE type, const char* charType[CHAR_MAX]);
-
+TABLE_PRINT_TYPE cli_static_table_printtype_get(StaticTableObject* object);
+uint32_t cli_static_table_row_get(StaticTableObject* object);
+uint32_t cli_static_table_column_get(StaticTableObject* object);
+int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
+CellObject* cli_static_table_cell_get(StaticTableObject* object, uint32_t row, uint32_t column);
 CellObject *cell_create(const char *value, uint16_t len);
 void cell_delete(CellObject* object);
 int cell_value_set(CellObject *object, const char *value, uint16_t len);
+CellValue* cell_value_get(CellObject *object);
 int cell_align_set(CellObject* object, TABLE_ALIGNMENT align);
-int cli_static_table_cell_set(StaticTableObject* object, uint32_t row, uint32_t column, CellObject* cell);
+TABLE_ALIGNMENT cell_align_get(CellObject* object);
 void cli_static_table_print(StaticTableObject* object);
 #endif //C_CLI_TABLE_CLI_TABLE_H
